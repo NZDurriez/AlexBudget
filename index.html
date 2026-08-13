@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Budget </title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- ===================================== -->
+    <!-- SIDEBAR -->
+    <!-- ===================================== -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+
+            <i class="fa-solid fa-wallet"></i>
+
+            <h1>Budget</h1>
+
+        </div>
+
+        <nav>
+
+            <button class="nav-btn active"
+                    data-page="dashboard">
+
+                <i class="fa-solid fa-chart-line"></i>
+
+                Dashboard
+
+            </button>
+
+            <button class="nav-btn"
+                    data-page="income">
+
+                <i class="fa-solid fa-money-bill-wave"></i>
+
+                Income
+
+            </button>
+
+            <button class="nav-btn"
+                    data-page="payments">
+
+                <i class="fa-solid fa-credit-card"></i>
+
+                Recurring Payments
+
+            </button>
+
+            <button class="nav-btn"
+                    data-page="calendar">
+
+                <i class="fa-solid fa-calendar-days"></i>
+
+                Calendar
+
+            </button>
+
+        </nav>
+
+    </aside>
+
+    <!-- ===================================== -->
+    <!-- MAIN CONTENT -->
+    <!-- ===================================== -->
+
+    <main class="main">
+
+        <header class="topbar">
+
+            <h2 id="pageTitle">
+
+                Dashboard
+
+            </h2>
+
+            <div class="topbar-right">
+
+                <span id="currentDate"></span>
+
+            </div>
+
+        </header>
+
+        <!-- ================================ -->
+        <!-- DASHBOARD -->
+        <!-- ================================ -->
+
+        <section
+            id="dashboard"
+            class="page active">
+
+            <div class="dashboard-cards">
+
+                <div class="card">
+
+                    <h3>Fortnightly Income</h3>
+
+                    <h2 id="monthlyIncome">$0.00</h2>
+
+                </div>
+
+                <div class="card">
+
+                    <h3>Monthly Payments</h3>
+
+                    <h2 id="monthlyPayments">$0.00</h2>
+
+                </div>
+
+                <div class="card">
+
+                    <h3>Remaining</h3>
+
+                    <h2 id="remainingIncome">$0.00</h2>
+
+                </div>
+
+                <div class="card">
+
+                    <h3>Next Income</h3>
+
+                    <div id="nextIncome">
+
+                        No income added
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="panel">
+
+                <div class="panel-header">
+
+                    <h3>
+
+                        Upcoming Payments
+
+                    </h3>
+
+                </div>
+
+                <div id="upcomingPayments">
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ================================ -->
+        <!-- INCOME -->
+        <!-- ================================ -->
+
+        <section
+            id="income"
+            class="page">
+
+            <div class="page-header">
+
+                <h3>Income</h3>
+
+                <button
+                    id="addIncomeBtn"
+                    class="primary-btn">
+
+                    <i class="fa-solid fa-plus"></i>
+
+                    Add Income
+
+                </button>
+
+            </div>
+
+            <table class="data-table">
+
+                <thead>
+
+                <tr>
+
+                    <th>Name</th>
+
+                    <th>Amount</th>
+
+                    <th>Frequency</th>
+
+                    <th>Next Payment</th>
+
+                    <th>Actions</th>
+
+                </tr>
+
+                </thead>
+
+                <tbody id="incomeTable">
+
+                </tbody>
+
+            </table>
+
+        </section>
+
+        <!-- ================================ -->
+        <!-- PAYMENTS -->
+        <!-- ================================ -->
+
+        <section
+            id="payments"
+            class="page">
+
+            <div class="page-header">
+
+                <h3>Recurring Payments</h3>
+
+                <button
+                    id="addPaymentBtn"
+                    class="primary-btn">
+
+                    <i class="fa-solid fa-plus"></i>
+
+                    Add Payment
+
+                </button>
+
+            </div>
+
+            <table class="data-table" id="paymentsTable">
+
+                <thead>
+
+                <tr>
+
+                    <th>Name</th>
+
+                    <th>Amount</th>
+
+                    <th>Frequency</th>
+
+                    <th>Next Due</th>
+
+                    <th>Paid</th>
+
+                    <th>Actions</th>
+
+                </tr>
+
+                </thead>
+
+                <tbody id="paymentTable">
+
+                </tbody>
+
+            </table>
+
+        </section>
+
+        <!-- ================================ -->
+        <!-- CALENDAR -->
+        <!-- ================================ -->
+
+        <section
+            id="calendar"
+            class="page">
+
+            <div class="calendar-header">
+
+                <button id="previousMonth">
+
+                    <i class="fa-solid fa-chevron-left"></i>
+
+                </button>
+
+                <h2 id="calendarMonth">
+
+                    July 2026
+
+                </h2>
+
+                <button id="nextMonth">
+
+                    <i class="fa-solid fa-chevron-right"></i>
+
+                </button>
+
+            </div>
+
+            <div
+                class="calendar-grid"
+                id="calendarGrid">
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<!-- ===================================== -->
+<!-- MODAL -->
+<!-- ===================================== -->
+
+<div
+    id="modal"
+    class="modal hidden">
+
+    <div class="modal-content">
+
+        <h2 id="modalTitle">
+
+            Add Item
+
+        </h2>
+
+        <form id="itemForm">
+
+            <div class="form-group">
+
+                <label>Name</label>
+
+                <input
+                    type="text"
+                    id="itemName"
+                    required>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Amount</label>
+
+                <input
+                    type="number"
+                    id="itemAmount"
+                    step="0.01"
+                    required>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Frequency</label>
+
+                <select id="itemFrequency">
+
+                    <option>Weekly</option>
+
+                    <option>Fortnightly</option>
+
+                    <option>Monthly</option>
+
+                    <option>Quarterly</option>
+
+                    <option>Yearly</option>
+
+                </select>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Next Date</label>
+
+                <input
+                    type="date"
+                    id="itemDate"
+                    required>
+
+            </div>
+
+            <div class="modal-buttons">
+
+                <button
+                    type="button"
+                    id="cancelBtn"
+                    class="secondary-btn">
+
+                    Cancel
+
+                </button>
+
+                <button
+                    type="submit"
+                    class="primary-btn">
+
+                    Save
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
