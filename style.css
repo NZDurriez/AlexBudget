@@ -185,30 +185,34 @@ body{
    TOPBAR
 ========================================================== */
 
-.topbar{
-
+.topbar {
+    position:relative;
     display:flex;
-
     justify-content:space-between;
-
     align-items:center;
-
     padding:28px 36px;
-
     border-bottom:1px solid var(--border);
-
 }
 
-.topbar h2{
-
-    font-size:30px;
-
+.topbar-right {
+    display:flex;
+    align-items:center;
+    gap:12px;
 }
 
-#currentDate{
+#currentDate {
+    position:absolute;
+    left:50%;
+    transform:translateX(-50%);
+
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:8px;
+
+    padding:7px 12px;
 
     color:var(--text-muted);
-
+    font-size:13px;
 }
 
 /* ==========================================================
@@ -552,6 +556,55 @@ body{
     color:white;
 }
 
+.schedule-selector {
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    background:var(--panel);
+
+    border:1px solid var(--border);
+
+    border-radius:12px;
+
+    padding:10px 12px;
+
+}
+
+.schedule-selector label {
+
+    color:var(--text-muted);
+
+    font-size:13px;
+
+}
+
+.schedule-selector select {
+
+    background:#0f172a;
+
+    color:white;
+
+    border:1px solid var(--border);
+
+    border-radius:8px;
+
+    padding:8px 12px;
+
+    font-size:14px;
+
+    font-family:'Inter',sans-serif;
+
+    cursor:pointer;
+
+    outline:none;
+
+}
+
+	
 /* ==========================================================
    MODAL
 ========================================================== */
