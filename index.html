@@ -95,9 +95,33 @@
 
             <div class="topbar-right">
 
-                <span id="currentDate"></span>
+    <div class="schedule-selector">
 
-            </div>
+        <label for="budgetSchedule">
+            Budget Schedule
+        </label>
+
+        <select id="budgetSchedule">
+
+            <option value="Weekly">
+                Weekly
+            </option>
+
+            <option value="Fortnightly" selected>
+                Fortnightly
+            </option>
+
+            <option value="Monthly">
+                Monthly
+            </option>
+
+        </select>
+
+    </div>
+
+    <span id="currentDate"></span>
+
+</div>
 
         </header>
 
@@ -113,7 +137,9 @@
 
                 <div class="card">
 
-                    <h3>Fortnightly Income</h3>
+                    <h3 id="incomePeriodLabel">
+					Fortnightly Income
+					</h3>
 
                     <h2 id="monthlyIncome">$0.00</h2>
 
@@ -121,7 +147,9 @@
 
                 <div class="card">
 
-                    <h3>Fortnightly Expenses</h3>
+                    <h3 id="paymentsPeriodLabel">
+					Fortnightly Expenses
+					</h3>
 
                     <h2 id="monthlyPayments">$0.00</h2>
 
