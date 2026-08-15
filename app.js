@@ -6,7 +6,10 @@ const STORAGE_KEY = "budgetDashboard";
 
 let budget = {
     income: [],
-    payments: []
+    payments: [],
+    settings: {
+        schedule: "Fortnightly"
+    }
 };
 
 let editingType = null;
@@ -30,6 +33,12 @@ const monthlyPayments = document.getElementById("monthlyPayments");
 const remainingIncome = document.getElementById("remainingIncome");
 const nextIncome = document.getElementById("nextIncome");
 
+const incomePeriodLabel =
+    document.getElementById("incomePeriodLabel");
+
+const paymentsPeriodLabel =
+    document.getElementById("paymentsPeriodLabel");
+	
 const upcomingPayments =
     document.getElementById("upcomingPayments");
 
@@ -81,12 +90,15 @@ const previousMonth =
 const nextMonth =
     document.getElementById("nextMonth");
 
+const budgetSchedule =
+    document.getElementById("budgetSchedule");
 
 // ============================================================
 // STARTUP
 // ============================================================
 
 function startApp() {
+
     loadData();
 
     setupEvents();
@@ -95,7 +107,10 @@ function startApp() {
 
     updateCurrentDate();
 
+    updateScheduleSelector();
+
     renderAll();
+
 }
 
 if (document.readyState === "loading") {
@@ -122,7 +137,6 @@ function setupEvents() {
 
     });
 
-
     // Add Income
     if (addIncomeBtn) {
 
@@ -133,7 +147,6 @@ function setupEvents() {
         });
 
     }
-
 
     // Add Payment
     if (addPaymentBtn) {
@@ -146,7 +159,24 @@ function setupEvents() {
 
     }
 
+	// Budget Schedule
+	if (budgetSchedule) {
 
+		budgetSchedule.addEventListener(
+        "change",
+        () => {
+
+            budget.settings.schedule =
+                budgetSchedule.value;
+
+            saveData();
+
+            renderAll();
+
+        }
+    );
+
+}
     // Save form
     if (itemForm) {
 
@@ -157,7 +187,6 @@ function setupEvents() {
 
     }
 
-
     // Cancel
     if (cancelBtn) {
 
@@ -167,7 +196,6 @@ function setupEvents() {
         );
 
     }
-
 
     // Calendar previous
     if (previousMonth) {
@@ -187,7 +215,6 @@ function setupEvents() {
 
     }
 
-
     // Calendar next
     if (nextMonth) {
 
@@ -205,7 +232,6 @@ function setupEvents() {
         );
 
     }
-
 
     // Close modal when clicking outside
     if (modal) {
@@ -255,17 +281,30 @@ function loadData() {
 
     try {
 
-        const data = JSON.parse(saved);
+        const data =
+            JSON.parse(saved);
 
         budget = {
 
-            income: Array.isArray(data.income)
-                ? data.income
-                : [],
+            income:
+                Array.isArray(data.income)
+                    ? data.income
+                    : [],
 
-            payments: Array.isArray(data.payments)
-                ? data.payments
-                : []
+            payments:
+                Array.isArray(data.payments)
+                    ? data.payments
+                    : [],
+
+            settings: {
+
+                schedule:
+                    data.settings &&
+                    data.settings.schedule
+                        ? data.settings.schedule
+                        : "Fortnightly"
+
+            }
 
         };
 
@@ -277,13 +316,36 @@ function loadData() {
         );
 
         budget = {
+
             income: [],
-            payments: []
+
+            payments: [],
+
+            settings: {
+
+                schedule: "Fortnightly"
+
+            }
+
         };
 
     }
 
 }
+
+function updateScheduleSelector() {
+
+    if (!budgetSchedule) {
+
+        return;
+
+    }
+
+    budgetSchedule.value =
+        budget.settings.schedule || "Fortnightly";
+
+}
+
 
 
 // ============================================================
@@ -760,10 +822,6 @@ function renderAll() {
 // INCOME TABLE
 // ============================================================
 
-// ============================================================
-// INCOME TABLE
-// ============================================================
-
 function renderIncome() {
 
     incomeTable.innerHTML = "";
@@ -971,20 +1029,49 @@ function editItem(type, id) {
 
 
 // ============================================================
+// DASHBOARD LABELS
+// ============================================================
+
+function updateDashboardLabels() {
+
+    const schedule =
+        budget.settings.schedule || "Fortnightly";
+
+
+    if (incomePeriodLabel) {
+
+        incomePeriodLabel.textContent =
+            `${schedule} Income`;
+
+    }
+
+
+    if (paymentsPeriodLabel) {
+
+        paymentsPeriodLabel.textContent =
+            `${schedule} Expenses`;
+
+    }
+
+}
+
+// ============================================================
 // DASHBOARD
 // ============================================================
 
 function renderDashboard() {
 
+	updateDashboardLabels();
+	
     const income =
-		getFortnightlyTotal(
-			budget.income
-		);
+    getBudgetPeriodTotal(
+        budget.income
+    );
 
-	const payments =
-		getFortnightlyTotal(
-			budget.payments
-		);
+const payments =
+    getBudgetPeriodTotal(
+        budget.payments
+    );
 
 
     const remaining =
@@ -1043,6 +1130,185 @@ function renderDashboard() {
 
 }
 
+// ============================================================
+// BUDGET PERIOD CALCULATIONS
+// ============================================================
+
+function getBudgetPeriodTotal(items) {
+
+    const schedule =
+        budget.settings.schedule || "Fortnightly";
+
+    let total = 0;
+
+
+    items.forEach(item => {
+
+        switch (schedule) {
+
+            // =================================================
+            // WEEKLY
+            // =================================================
+
+            case "Weekly":
+
+                switch (item.frequency) {
+
+                    case "Weekly":
+
+                        total +=
+                            item.amount;
+
+                        break;
+
+
+                    case "Fortnightly":
+
+                        total +=
+                            item.amount / 2;
+
+                        break;
+
+
+                    case "Monthly":
+
+                        total +=
+                            item.amount * 12 / 52;
+
+                        break;
+
+
+                    case "Quarterly":
+
+                        total +=
+                            item.amount * 4 / 52;
+
+                        break;
+
+
+                    case "Yearly":
+
+                        total +=
+                            item.amount / 52;
+
+                        break;
+
+                }
+
+                break;
+
+
+            // =================================================
+            // FORTNIGHTLY
+            // =================================================
+
+            case "Fortnightly":
+
+                switch (item.frequency) {
+
+                    case "Weekly":
+
+                        total +=
+                            item.amount * 2;
+
+                        break;
+
+
+                    case "Fortnightly":
+
+                        total +=
+                            item.amount;
+
+                        break;
+
+
+                    case "Monthly":
+
+                        total +=
+                            item.amount * 12 / 26;
+
+                        break;
+
+
+                    case "Quarterly":
+
+                        total +=
+                            item.amount * 4 / 26;
+
+                        break;
+
+
+                    case "Yearly":
+
+                        total +=
+                            item.amount / 26;
+
+                        break;
+
+                }
+
+                break;
+
+
+            // =================================================
+            // MONTHLY
+            // =================================================
+
+            case "Monthly":
+
+                switch (item.frequency) {
+
+                    case "Weekly":
+
+                        total +=
+                            item.amount * 52 / 12;
+
+                        break;
+
+
+                    case "Fortnightly":
+
+                        total +=
+                            item.amount * 26 / 12;
+
+                        break;
+
+
+                    case "Monthly":
+
+                        total +=
+                            item.amount;
+
+                        break;
+
+
+                    case "Quarterly":
+
+                        total +=
+                            item.amount / 3;
+
+                        break;
+
+
+                    case "Yearly":
+
+                        total +=
+                            item.amount / 12;
+
+                        break;
+
+                }
+
+                break;
+
+        }
+
+    });
+
+
+    return total;
+
+}
 
 // ============================================================
 // MONTHLY CALCULATIONS
@@ -1708,15 +1974,16 @@ function updateCurrentDate() {
     const now = new Date();
 
     currentDate.textContent =
-        now.toLocaleDateString(
-            "en-NZ",
-            {
-                weekday: "long",
-                day: "numeric",
-                month: "long",
-                year: "numeric"
-            }
-        );
+    "Today's Date • " +
+    now.toLocaleDateString(
+        "en-NZ",
+        {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+        }
+    );
 }
 
 // ============================================================
