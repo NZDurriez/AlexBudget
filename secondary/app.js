@@ -14,9 +14,9 @@ let budget = {
     }
 };
 
-let profiles = {};
+let profiles = [];
 
-let currentProfile = "My Budget";
+let activeProfileId = null;
 
 let editingType = null;
 let editingId = null;
@@ -120,23 +120,56 @@ const budgetAnchorDate =
 const profileSelector =
     document.getElementById("profileSelector");	
 	
+const manageProfilesBtn =
+    document.getElementById("manageProfilesBtn");
+
+const profileModal =
+    document.getElementById("profileModal");
+
+const profileList =
+    document.getElementById("profileList");
+
+const createProfileBtn =
+    document.getElementById("createProfileBtn");
+
+const closeProfileModalBtn =
+    document.getElementById("closeProfileModalBtn");
+	
 // ============================================================
 // STARTUP
 // ============================================================
 
 function startApp() {
 
+    console.log("START APP 1");
+
     loadData();
+
+    console.log("START APP 2");
 
     setupEvents();
 
+    console.log("START APP 3");
+
     updateRecurringDates();
+
+    console.log("START APP 4");
 
     updateCurrentDate();
 
+    console.log("START APP 5");
+
     updateScheduleSelector();
 
+    console.log("START APP 6");
+
+    renderProfiles();
+
+    console.log("START APP 7");
+
     renderAll();
+
+    console.log("START APP 8");
 
 }
 
@@ -291,6 +324,70 @@ if (budgetAnchorDate) {
 
     }
 
+
+// ========================================================
+// PROFILE
+// ========================================================
+
+if (profileSelector) {
+
+    profileSelector.addEventListener(
+        "change",
+        () => {
+
+            switchProfile(
+                profileSelector.value
+            );
+
+        }
+    );
+
+}
+
+if (manageProfilesBtn) {
+
+    manageProfilesBtn.addEventListener(
+        "click",
+        openProfileManager
+    );
+
+}
+
+if (createProfileBtn) {
+
+    createProfileBtn.addEventListener(
+        "click",
+        createProfile
+    );
+
+}
+
+if (closeProfileModalBtn) {
+
+    closeProfileModalBtn.addEventListener(
+        "click",
+        closeProfileManager
+    );
+
+}
+
+if (profileModal) {
+
+    profileModal.addEventListener(
+        "click",
+        event => {
+
+            if (event.target === profileModal) {
+
+                closeProfileManager();
+
+            }
+
+        }
+    );
+
+}
+
     // Close modal when clicking outside
     if (modal) {
 
@@ -311,6 +408,52 @@ if (budgetAnchorDate) {
 
 }
 
+
+// ============================================================
+// SWITCH PROFILE
+// ============================================================
+
+function switchProfile(profileId) {
+
+    const selectedProfile =
+        profiles.find(
+            profile =>
+                profile.id === profileId
+        );
+
+    if (!selectedProfile) {
+
+        console.error(
+            "Could not find profile:",
+            profileId
+        );
+
+        return;
+
+    }
+
+    activeProfileId =
+        selectedProfile.id;
+
+    budget =
+        selectedProfile.budget;
+
+    updateScheduleSelector();
+
+    updateRecurringDates();
+
+    renderProfiles();
+
+    renderAll();
+
+    saveData();
+
+    console.log(
+        "Switched to profile:",
+        selectedProfile.name
+    );
+
+}	
 
 // ============================================================
 // STORAGE
@@ -695,7 +838,377 @@ function updateScheduleSelector() {
 
 }
 
+// ============================================================
+// PROFILES
+// ============================================================
 
+function renderProfiles() {
+
+    if (!profileSelector) {
+        return;
+    }
+
+    profileSelector.innerHTML = "";
+
+    profiles.forEach(profile => {
+
+        const option =
+            document.createElement("option");
+
+        option.value =
+            profile.id;
+
+        option.textContent =
+            profile.name;
+
+        if (profile.id === activeProfileId) {
+
+            option.selected = true;
+
+        }
+
+        profileSelector.appendChild(option);
+
+    });
+
+}
+
+// ============================================================
+// PROFILE MANAGEMENT
+// ============================================================
+
+function openProfileManager() {
+
+    renderProfileManager();
+
+    profileModal.classList.remove("hidden");
+
+}
+
+
+function closeProfileManager() {
+
+    profileModal.classList.add("hidden");
+
+}
+
+
+// ============================================================
+// RENDER PROFILE MANAGEMENT LIST
+// ============================================================
+
+function renderProfileManager() {
+
+    if (!profileList) {
+
+        return;
+
+    }
+
+    profileList.innerHTML = "";
+
+    profiles.forEach(profile => {
+
+        const row =
+            document.createElement("div");
+
+        row.className =
+            "profile-management-row";
+
+        const isActive =
+            profile.id === activeProfileId;
+
+        row.innerHTML = `
+
+            <div class="profile-management-name">
+
+                <i class="fa-solid fa-user"></i>
+
+                <span>
+                    ${escapeHtml(profile.name)}
+                </span>
+
+                ${
+                    isActive
+                        ? `<small>Active</small>`
+                        : ""
+                }
+
+            </div>
+
+            <div class="profile-management-actions">
+
+                <button
+                    type="button"
+                    class="action-btn edit-btn"
+                    onclick="renameProfile('${profile.id}')"
+                    title="Rename">
+
+                    <i class="fa-solid fa-pen"></i>
+
+                </button>
+
+                <button
+                    type="button"
+                    class="action-btn delete-btn"
+                    onclick="deleteProfile('${profile.id}')"
+                    title="Delete">
+
+                    <i class="fa-solid fa-trash"></i>
+
+                </button>
+
+            </div>
+
+        `;
+
+        profileList.appendChild(row);
+
+    });
+
+}
+
+
+// ============================================================
+// CREATE PROFILE
+// ============================================================
+
+function createProfile() {
+
+    const name =
+        prompt("Enter a name for the new profile:");
+
+    if (name === null) {
+
+        return;
+
+    }
+
+    const trimmedName =
+        name.trim();
+
+    if (!trimmedName) {
+
+        alert("Please enter a profile name.");
+
+        return;
+
+    }
+
+
+    const newProfile = {
+
+        id:
+            generateId(),
+
+        name:
+            trimmedName,
+
+        budget: {
+
+            income: [],
+
+            payments: [],
+
+            oneOffPayments: [],
+
+            settings: {
+
+                schedule:
+                    "Fortnightly",
+
+                anchorDate:
+                    ""
+
+            }
+
+        }
+
+    };
+
+
+    profiles.push(newProfile);
+
+    activeProfileId =
+        newProfile.id;
+
+    budget =
+        newProfile.budget;
+
+
+    saveData();
+
+    updateScheduleSelector();
+
+    renderProfiles();
+
+    renderProfileManager();
+
+    renderAll();
+
+
+    console.log(
+        "Created profile:",
+        trimmedName
+    );
+
+}
+
+
+// ============================================================
+// RENAME PROFILE
+// ============================================================
+
+function renameProfile(profileId) {
+
+    const profile =
+        profiles.find(
+            profile =>
+                profile.id === profileId
+        );
+
+    if (!profile) {
+
+        return;
+
+    }
+
+
+    const newName =
+        prompt(
+            "Enter a new profile name:",
+            profile.name
+        );
+
+    if (newName === null) {
+
+        return;
+
+    }
+
+
+    const trimmedName =
+        newName.trim();
+
+    if (!trimmedName) {
+
+        alert("Please enter a profile name.");
+
+        return;
+
+    }
+
+
+    profile.name =
+        trimmedName;
+
+
+    saveData();
+
+    renderProfiles();
+
+    renderProfileManager();
+
+
+    console.log(
+        "Renamed profile:",
+        trimmedName
+    );
+
+}
+
+
+// ============================================================
+// DELETE PROFILE
+// ============================================================
+
+function deleteProfile(profileId) {
+
+    const profile =
+        profiles.find(
+            profile =>
+                profile.id === profileId
+        );
+
+    if (!profile) {
+
+        return;
+
+    }
+
+
+    // Don't allow the last profile to be deleted
+
+    if (profiles.length === 1) {
+
+        alert(
+            "You must keep at least one profile."
+        );
+
+        return;
+
+    }
+
+
+    const confirmed =
+        confirm(
+            `Delete the profile "${profile.name}"? This will permanently delete all of its budget data.`
+        );
+
+    if (!confirmed) {
+
+        return;
+
+    }
+
+
+    const wasActive =
+        profile.id === activeProfileId;
+
+
+    profiles =
+        profiles.filter(
+            profile =>
+                profile.id !== profileId
+        );
+
+
+    // If deleting the active profile,
+    // switch to the first remaining profile
+
+    if (wasActive) {
+
+        const newActiveProfile =
+            profiles[0];
+
+        activeProfileId =
+            newActiveProfile.id;
+
+        budget =
+            newActiveProfile.budget;
+
+        updateScheduleSelector();
+
+        updateRecurringDates();
+
+    }
+
+
+    saveData();
+
+    renderProfiles();
+
+    renderProfileManager();
+
+    renderAll();
+
+
+    console.log(
+        "Deleted profile:",
+        profile.name
+    );
+
+}
 
 // ============================================================
 // NAVIGATION
@@ -2629,27 +3142,6 @@ function getCalendarEvents(dateString) {
 
 }
 
-    // ----------------------------------------
-    // ONE-OFF PAYMENTS
-    // ----------------------------------------
-
-    budget.oneOffPayments.forEach(item => {
-
-        if (item.nextDate === dateString) {
-
-            events.push({
-
-                type: "oneoff-event",
-
-                name: item.name,
-
-                amount: item.amount
-
-            });
-
-        }
-
-    });
 	
 
 // ============================================================
