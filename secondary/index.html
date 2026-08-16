@@ -128,6 +128,20 @@
 		</div>
 
 
+		<!-- Next Pay Day -->
+		<div class="schedule-selector">
+
+			<label for="budgetAnchorDate">
+				Next Pay Day
+			</label>
+
+			<input
+				type="date"
+				id="budgetAnchorDate">
+
+		</div>
+
+
 		<!-- Profile -->
 		<div class="profile-selector">
 
@@ -135,20 +149,29 @@
 				Profile
 			</label>
 
-			<select id="profileSelector">
+			<div class="profile-controls">
 
-				<option value="default">
-					My Budget
-				</option>
+				<select id="profileSelector"></select>
 
-			</select>
+				<button
+					type="button"
+					id="manageProfilesBtn"
+					class="profile-manage-btn"
+					title="Manage Profiles">
 
+					<i class="fa-solid fa-gear"></i>
+
+				</button>
+
+			</div>
+
+		</div>
 		</div>
 
 
 		<span id="currentDate"></span>
 
-	</div>
+	</header>
 
     <div class="budget-period">
 
@@ -534,6 +557,56 @@
 
 </div>
 
+<!-- ===================================== -->
+<!-- PROFILE MANAGEMENT MODAL -->
+<!-- ===================================== -->
+
+<div
+    id="profileModal"
+    class="modal hidden">
+
+    <div class="modal-content profile-modal-content">
+
+        <h2>
+            Manage Profiles
+        </h2>
+
+        <div
+            id="profileList"
+            class="profile-list">
+        </div>
+
+        <div class="profile-create-section">
+
+            <button
+                type="button"
+                id="createProfileBtn"
+                class="primary-btn">
+
+                <i class="fa-solid fa-plus"></i>
+
+                Create New Profile
+
+            </button>
+
+        </div>
+
+        <div class="modal-buttons">
+
+            <button
+                type="button"
+                id="closeProfileModalBtn"
+                class="secondary-btn">
+
+                Close
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
 <script src="app.js"></script>
 
 </body>
