@@ -1016,6 +1016,117 @@ body{
 
 }
 
+/* ==========================================================
+   PROFILE MANAGEMENT
+========================================================== */
+
+.profile-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.profile-controls select {
+    min-width: 130px;
+}
+
+.profile-manage-btn {
+    width: 34px;
+    height: 34px;
+
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+
+    background: rgba(255,255,255,0.04);
+
+    color: inherit;
+
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+.profile-manage-btn:hover {
+    background: rgba(255,255,255,0.09);
+    transform: translateY(-1px);
+}
+
+
+/* ==========================================================
+   PROFILE MODAL
+========================================================== */
+
+.profile-modal-content {
+    width: min(500px, 90vw);
+}
+
+.profile-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    margin: 20px 0;
+}
+
+.profile-management-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 12px 14px;
+
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+
+    background: rgba(255,255,255,0.03);
+}
+
+.profile-management-name {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    min-width: 0;
+}
+
+.profile-management-name span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profile-management-name small {
+    padding: 3px 7px;
+
+    border-radius: 6px;
+
+    font-size: 11px;
+
+    background: rgba(255,255,255,0.08);
+}
+
+.profile-management-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.profile-create-section {
+    margin-top: 10px;
+    padding-top: 15px;
+
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.profile-create-section .primary-btn {
+    width: 100%;
+}
+
 /* Hide Paid column */
 #paymentsTable th:nth-child(5),
 #paymentsTable td:nth-child(5) {
