@@ -66,6 +66,15 @@
 
             </button>
 
+			<button class="nav-btn"
+					data-page="oneoff">
+
+				<i class="fa-solid fa-receipt"></i>
+
+				One-Off Payments
+
+			</button>
+
             <button class="nav-btn"
                     data-page="calendar">
 
@@ -87,43 +96,153 @@
 
         <header class="topbar">
 
-            <h2 id="pageTitle">
+    <h2 id="pageTitle">
+        Dashboard
+    </h2>
 
-                Dashboard
+		<div class="topbar-right">
 
-            </h2>
+<!-- Theme Toggle -->
 
-            <div class="topbar-right">
+<button
+    type="button"
+    id="themeToggle"
+    class="theme-toggle"
+    title="Switch to light mode"
+    aria-label="Switch theme">
 
-    <div class="schedule-selector">
+    <i class="fa-solid fa-sun"></i>
 
-        <label for="budgetSchedule">
-            Budget Schedule
-        </label>
+</button>
 
-        <select id="budgetSchedule">
+		<!-- Budget Schedule -->
+		<div class="schedule-selector">
 
-            <option value="Weekly">
-                Weekly
-            </option>
+			<label for="budgetSchedule">
 
-            <option value="Fortnightly" selected>
-                Fortnightly
-            </option>
+    Budget Schedule
 
-            <option value="Monthly">
-                Monthly
-            </option>
+    <span class="tooltip">
 
-        </select>
+        <i class="fa-solid fa-circle-info"></i>
+
+        <span class="tooltip-text">
+            Choose how your budget is organised.
+            This controls whether your dashboard
+            shows weekly, fortnightly, or monthly
+            amounts.
+        </span>
+
+    </span>
+
+</label>
+
+			<select id="budgetSchedule">
+
+				<option value="Weekly">
+					Weekly
+				</option>
+
+				<option value="Fortnightly" selected>
+					Fortnightly
+				</option>
+
+				<option value="Monthly">
+					Monthly
+				</option>
+
+			</select>
+
+		</div>
+
+
+		<!-- Next Pay Day -->
+		<div class="schedule-selector">
+
+			<label for="budgetAnchorDate">
+
+    Next Pay Day
+
+    <span class="tooltip">
+
+        <i class="fa-solid fa-circle-info"></i>
+
+        <span class="tooltip-text">
+            Enter your next expected payday.
+            The app uses this date to calculate
+            your current budget period.
+        </span>
+
+    </span>
+
+</label>
+
+			<input
+				type="date"
+				id="budgetAnchorDate">
+
+		</div>
+
+
+		<!-- Profile -->
+		<div class="profile-selector">
+
+			<label for="profileSelector">
+
+    Profile
+
+    <span class="tooltip">
+
+        <i class="fa-solid fa-circle-info"></i>
+
+        <span class="tooltip-text">
+            Profiles let you keep separate
+            budgets and settings. For example,
+            you could have a Personal and
+            Household profile.
+        </span>
+
+    </span>
+
+</label>
+
+			<div class="profile-controls">
+
+				<select id="profileSelector"></select>
+
+				<button
+					type="button"
+					id="manageProfilesBtn"
+					class="profile-manage-btn"
+					title="Manage Profiles">
+
+					<i class="fa-solid fa-gear"></i>
+
+				</button>
+
+			</div>
+
+		</div>
+		</div>
+
+
+		<span id="currentDate"></span>
+
+	</header>
+
+    <div class="budget-period">
+
+        <i class="fa-solid fa-calendar-days"></i>
+
+        <span>Current Budget Period</span>
+
+        <strong id="currentBudgetPeriod">
+            —
+        </strong>
 
     </div>
 
-    <span id="currentDate"></span>
-
-</div>
-
-        </header>
+</header>
 
         <!-- ================================ -->
         <!-- DASHBOARD -->
@@ -133,6 +252,7 @@
             id="dashboard"
             class="page active">
 
+			
             <div class="dashboard-cards">
 
                 <div class="card">
@@ -303,6 +423,56 @@
 
         </section>
 
+		<!-- ================================ -->
+		<!-- ONE-OFF PAYMENTS -->
+		<!-- ================================ -->
+
+		<section
+			id="oneoff"
+			class="page">
+
+			<div class="page-header">
+
+				<h3>One-Off Payments</h3>
+
+				<button
+					id="addOneOffBtn"
+					class="primary-btn">
+
+					<i class="fa-solid fa-plus"></i>
+
+					Add One-Off Payment
+
+				</button>
+
+			</div>
+
+			<table class="data-table">
+
+				<thead>
+
+				<tr>
+
+					<th>Name</th>
+
+					<th>Amount</th>
+
+					<th>Date</th>
+
+					<th>Actions</th>
+
+				</tr>
+
+				</thead>
+
+				<tbody id="oneOffTable">
+
+				</tbody>
+
+			</table>
+
+		</section>
+
         <!-- ================================ -->
         <!-- CALENDAR -->
         <!-- ================================ -->
@@ -386,9 +556,25 @@
 
             </div>
 
-            <div class="form-group">
+            <div class="form-group" id="frequencyGroup">
 
-                <label>Frequency</label>
+                <label>
+
+    Frequency
+
+    <span class="tooltip">
+
+        <i class="fa-solid fa-circle-info"></i>
+
+        <span class="tooltip-text">
+            How often this income or payment
+            occurs. This is used when calculating
+            your budget totals.
+        </span>
+
+    </span>
+
+</label>
 
                 <select id="itemFrequency">
 
@@ -408,7 +594,7 @@
 
             <div class="form-group">
 
-                <label>Next Date</label>
+                <label id="itemDateLabel">Next Date</label>
 
                 <input
                     type="date"
@@ -428,6 +614,14 @@
 
                 </button>
 
+				<button
+					type="button"
+					id="deleteItemBtn"
+					class="delete-modal-btn hidden">
+					<i class="fa-solid fa-trash"></i>
+					Delete
+				</button>
+
                 <button
                     type="submit"
                     class="primary-btn">
@@ -444,6 +638,265 @@
 
 </div>
 
+<!-- ===================================== -->
+<!-- PROFILE MANAGEMENT MODAL -->
+<!-- ===================================== -->
+
+<!-- ===================================== -->
+<!-- PROFILE MANAGEMENT MODAL -->
+<!-- ===================================== -->
+
+<div
+    id="profileModal"
+    class="modal hidden">
+
+    <div class="modal-content profile-modal-content">
+
+        <!-- ================================ -->
+        <!-- MANAGE PROFILES -->
+        <!-- ================================ -->
+
+        <div id="profileManagerView">
+
+            <h2>
+                Manage Profiles
+            </h2>
+
+            <div
+                id="profileList"
+                class="profile-list">
+            </div>
+
+            <div class="profile-create-section">
+
+                <button
+                    type="button"
+                    id="createProfileBtn"
+                    class="primary-btn">
+
+                    <i class="fa-solid fa-plus"></i>
+
+                    Create New Profile
+
+                </button>
+
+            </div>
+
+            <div class="modal-buttons">
+
+                <button
+                    type="button"
+                    id="closeProfileModalBtn"
+                    class="secondary-btn">
+
+                    Close
+
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================ -->
+        <!-- CREATE PROFILE -->
+        <!-- ================================ -->
+
+        <div
+            id="profileCreateView"
+            style="display: none;">
+
+            <h2>
+                Create New Profile
+            </h2>
+
+            <form id="profileForm">
+
+                <!-- Profile Name -->
+
+                <div class="form-group">
+
+                    <label for="profileName">
+                        Profile Name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="profileName"
+                        placeholder="e.g. Personal Budget"
+                        required>
+
+                </div>
+
+
+                <!-- Use Payday -->
+
+                <div class="form-group">
+
+                    <label>
+
+    Does this profile use a payday?
+
+    <span class="tooltip">
+
+        <i class="fa-solid fa-circle-info"></i>
+
+        <span class="tooltip-text">
+            If enabled, you can set a payday and
+            the app will calculate budget periods
+            around your pay cycle. If disabled,
+            you can still choose weekly,
+            fortnightly, or monthly budgeting,
+            but the budget won't be tied to a
+            payday.
+        </span>
+
+    </span>
+
+</label>
+
+                    <div class="profile-payday-options">
+
+                        <button
+                            type="button"
+                            id="profilePaydayYes"
+                            class="profile-option-btn active">
+
+                            Yes
+
+                        </button>
+
+                        <button
+                            type="button"
+                            id="profilePaydayNo"
+                            class="profile-option-btn">
+
+                            No
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Payday Settings -->
+
+                <div id="profilePaydaySettings">
+
+                    <!-- Schedule -->
+
+                    <div class="form-group">
+
+                        <label for="profileSchedule">
+                            Budget Schedule
+                        </label>
+
+                        <select id="profileSchedule">
+
+                            <option value="Weekly">
+                                Weekly
+                            </option>
+
+                            <option
+                                value="Fortnightly"
+                                selected>
+                                Fortnightly
+                            </option>
+
+                            <option value="Monthly">
+                                Monthly
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- Anchor Date -->
+
+                    <div class="form-group">
+
+                        <label for="profileAnchorDate">
+                            Next Pay Day
+                        </label>
+
+                        <input
+                            type="date"
+                            id="profileAnchorDate">
+
+                    </div>
+
+                </div>
+
+
+                <!-- Buttons -->
+
+                <div class="modal-buttons">
+
+                    <button
+                        type="button"
+                        id="cancelCreateProfileBtn"
+                        class="secondary-btn">
+
+                        Cancel
+
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="primary-btn">
+
+                        <i class="fa-solid fa-plus"></i>
+
+                        Create Profile
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- =========================================================
+     CALENDAR ADD MENU
+========================================================= -->
+
+<div id="calendarAddMenu" class="calendar-add-menu hidden">
+
+    <div class="calendar-add-title">
+        Add to <span id="calendarAddDate"></span>
+    </div>
+
+    <button type="button" id="calendarAddIncome">
+        <i class="fa-solid fa-money-bill-wave"></i>
+        Income
+    </button>
+
+    <button type="button" id="calendarAddPayment">
+        <i class="fa-solid fa-repeat"></i>
+        Recurring Payment
+    </button>
+
+    <button type="button" id="calendarAddOneOff">
+        <i class="fa-solid fa-money-bill-transfer"></i>
+        One-Off Payment
+    </button>
+
+    <button
+        type="button"
+        id="calendarAddCancel"
+        class="calendar-add-cancel"
+    >
+        Cancel
+    </button>
+
+</div>
 <script src="app.js"></script>
 
 </body>
