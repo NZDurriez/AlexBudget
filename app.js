@@ -7,10 +7,16 @@ const STORAGE_KEY = "budgetDashboard";
 let budget = {
     income: [],
     payments: [],
+    oneOffPayments: [],
     settings: {
-        schedule: "Fortnightly"
+        schedule: "Fortnightly",
+        anchorDate: ""
     }
 };
+
+let profiles = [];
+
+let activeProfileId = null;
 
 let editingType = null;
 let editingId = null;
@@ -42,6 +48,9 @@ const paymentsPeriodLabel =
 const upcomingPayments =
     document.getElementById("upcomingPayments");
 
+const currentBudgetPeriod =
+    document.getElementById("currentBudgetPeriod");
+	
 const incomeTable =
     document.getElementById("incomeTable");
 
@@ -54,6 +63,12 @@ const addIncomeBtn =
 const addPaymentBtn =
     document.getElementById("addPaymentBtn");
 
+const addOneOffBtn =
+    document.getElementById("addOneOffBtn");
+
+const oneOffTable =
+    document.getElementById("oneOffTable");
+	
 const modal =
     document.getElementById("modal");
 
@@ -72,12 +87,21 @@ const itemAmount =
 const itemFrequency =
     document.getElementById("itemFrequency");
 
+const frequencyGroup =
+    document.getElementById("frequencyGroup");
+	
 const itemDate =
     document.getElementById("itemDate");
 
+const itemDateLabel =
+    document.getElementById("itemDateLabel");
+	
 const cancelBtn =
     document.getElementById("cancelBtn");
 
+const deleteItemBtn =
+    document.getElementById("deleteItemBtn");
+	
 const calendarGrid =
     document.getElementById("calendarGrid");
 
@@ -93,23 +117,119 @@ const nextMonth =
 const budgetSchedule =
     document.getElementById("budgetSchedule");
 
+const budgetAnchorDate =
+    document.getElementById("budgetAnchorDate");
+
+const budgetScheduleContainer =
+    budgetSchedule?.closest(".schedule-selector");
+
+const budgetAnchorDateContainer =
+    budgetAnchorDate?.closest(".schedule-selector");
+	
+const profileSelector =
+    document.getElementById("profileSelector");	
+	
+const manageProfilesBtn =
+    document.getElementById("manageProfilesBtn");
+
+const profileModal =
+    document.getElementById("profileModal");
+
+const profileList =
+    document.getElementById("profileList");
+
+const createProfileBtn =
+    document.getElementById("createProfileBtn");
+
+const closeProfileModalBtn =
+    document.getElementById("closeProfileModalBtn");
+
+const profileManagerView =
+    document.getElementById("profileManagerView");
+
+const profileCreateView =
+    document.getElementById("profileCreateView");
+
+const profileForm =
+    document.getElementById("profileForm");
+
+const profileName =
+    document.getElementById("profileName");
+
+const profilePaydayYes =
+    document.getElementById("profilePaydayYes");
+
+const profilePaydayNo =
+    document.getElementById("profilePaydayNo");
+
+const profilePaydaySettings =
+    document.getElementById("profilePaydaySettings");
+
+const profileSchedule =
+    document.getElementById("profileSchedule");
+
+const profileAnchorDate =
+    document.getElementById("profileAnchorDate");
+
+const cancelCreateProfileBtn =
+    document.getElementById("cancelCreateProfileBtn");
+	
+const calendarAddMenu =
+    document.getElementById("calendarAddMenu");
+
+const calendarAddDate =
+    document.getElementById("calendarAddDate");
+
+const calendarAddIncome =
+    document.getElementById("calendarAddIncome");
+
+const calendarAddPayment =
+    document.getElementById("calendarAddPayment");
+
+const calendarAddOneOff =
+    document.getElementById("calendarAddOneOff");
+
+const calendarAddCancel =
+    document.getElementById("calendarAddCancel");
+
+
 // ============================================================
 // STARTUP
 // ============================================================
 
 function startApp() {
 
+    console.log("START APP 1");
+
     loadData();
+
+    console.log("START APP 2");
 
     setupEvents();
 
+    console.log("START APP 3");
+
+	setupTheme();
+	
     updateRecurringDates();
+
+    console.log("START APP 4");
 
     updateCurrentDate();
 
+    console.log("START APP 5");
+
     updateScheduleSelector();
 
+    console.log("START APP 6");
+
+    renderProfiles();
+
+    console.log("START APP 7");
+
     renderAll();
+
+    console.log("START APP 8");
 
 }
 
@@ -159,6 +279,17 @@ function setupEvents() {
 
     }
 
+	// Add One-Off Payment
+	if (addOneOffBtn) {
+
+		addOneOffBtn.addEventListener("click", () => {
+
+			openModal("oneoff");
+
+		});
+
+	}
+	
 	// Budget Schedule
 	if (budgetSchedule) {
 
@@ -177,6 +308,26 @@ function setupEvents() {
     );
 
 }
+
+// Budget Anchor Date
+if (budgetAnchorDate) {
+
+    budgetAnchorDate.addEventListener(
+        "change",
+        () => {
+
+            budget.settings.anchorDate =
+                budgetAnchorDate.value;
+
+            saveData();
+
+            renderAll();
+
+        }
+    );
+
+}
+
     // Save form
     if (itemForm) {
 
@@ -233,6 +384,173 @@ function setupEvents() {
 
     }
 
+// Delete item from modal
+if (deleteItemBtn) {
+
+    deleteItemBtn.addEventListener(
+        "click",
+        () => {
+
+            if (
+                !editingType ||
+                !editingId
+            ) {
+
+                return;
+
+            }
+
+            const confirmed =
+                confirm(
+                    "Are you sure you want to delete this item?"
+                );
+
+            if (!confirmed) {
+
+                return;
+
+            }
+
+            const type =
+                editingType;
+
+            const id =
+                editingId;
+
+            closeModal();
+
+            deleteItem(
+                type,
+                id
+            );
+
+        }
+    );
+
+}
+
+
+// ========================================================
+// PROFILE
+// ========================================================
+
+if (profileSelector) {
+
+    profileSelector.addEventListener(
+        "change",
+        () => {
+
+            switchProfile(
+                profileSelector.value
+            );
+
+        }
+    );
+
+}
+
+if (manageProfilesBtn) {
+
+    manageProfilesBtn.addEventListener(
+        "click",
+        openProfileManager
+    );
+
+}
+
+if (createProfileBtn) {
+
+    createProfileBtn.addEventListener(
+        "click",
+        openCreateProfileForm
+    );
+
+}
+
+if (profileForm) {
+
+	profileForm.addEventListener(
+		"submit",
+		saveProfile
+	);
+
+}
+
+if (profilePaydayYes) {
+
+    profilePaydayYes.addEventListener(
+        "click",
+        () => {
+
+            profilePaydayYes.classList.add("active");
+
+            profilePaydayNo.classList.remove("active");
+
+            profilePaydaySettings.style.display = "";
+
+        }
+    );
+
+}
+
+if (profilePaydayNo) {
+
+    profilePaydayNo.addEventListener(
+        "click",
+        () => {
+
+            profilePaydayNo.classList.add("active");
+
+            profilePaydayYes.classList.remove("active");
+
+            profilePaydaySettings.style.display = "none";
+
+        }
+    );
+
+}
+
+if (cancelCreateProfileBtn) {
+
+    cancelCreateProfileBtn.addEventListener(
+        "click",
+        () => {
+
+            profileCreateView.style.display = "none";
+
+            profileManagerView.style.display = "block";
+
+        }
+    );
+
+}
+
+if (closeProfileModalBtn) {
+
+    closeProfileModalBtn.addEventListener(
+        "click",
+        closeProfileManager
+    );
+
+}
+
+if (profileModal) {
+
+    profileModal.addEventListener(
+        "click",
+        event => {
+
+            if (event.target === profileModal) {
+
+                closeProfileManager();
+
+            }
+
+        }
+    );
+
+}
+
     // Close modal when clicking outside
     if (modal) {
 
@@ -255,36 +573,302 @@ function setupEvents() {
 
 
 // ============================================================
+// SWITCH PROFILE
+// ============================================================
+
+function switchProfile(profileId) {
+
+    const selectedProfile =
+        profiles.find(
+            profile =>
+                profile.id === profileId
+        );
+
+    if (!selectedProfile) {
+
+        console.error(
+            "Could not find profile:",
+            profileId
+        );
+
+        return;
+
+    }
+
+    activeProfileId =
+        selectedProfile.id;
+
+    budget =
+        selectedProfile.budget;
+
+    updateScheduleSelector();
+
+    updateRecurringDates();
+
+    renderProfiles();
+
+    renderAll();
+
+    saveData();
+
+    console.log(
+        "Switched to profile:",
+        selectedProfile.name
+    );
+
+}	
+
+// ============================================================
 // STORAGE
 // ============================================================
 
 function saveData() {
 
+    const storageData = {
+        activeProfileId: activeProfileId,
+        profiles: profiles
+    };
+
     localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify(budget)
+        JSON.stringify(storageData)
     );
 
 }
-
 
 function loadData() {
 
     const saved =
         localStorage.getItem(STORAGE_KEY);
 
+
+    // ========================================================
+    // NO SAVED DATA
+    // ========================================================
+
     if (!saved) {
+
+        const newProfile = {
+
+            id: generateId(),
+
+            name: "My Budget",
+
+            budget: {
+
+                income: [],
+
+                payments: [],
+
+                oneOffPayments: [],
+
+                settings: {
+
+				useBudgetPeriod: true,
+
+				schedule: "Fortnightly",
+
+				anchorDate: ""
+
+			}
+
+            }
+
+        };
+
+
+        profiles = [newProfile];
+
+        activeProfileId =
+            newProfile.id;
+
+        budget =
+            newProfile.budget;
+
+        saveData();
 
         return;
 
     }
+
+
+    // ========================================================
+    // LOAD SAVED DATA
+    // ========================================================
 
     try {
 
         const data =
             JSON.parse(saved);
 
-        budget = {
+
+        // ====================================================
+        // NEW PROFILE FORMAT
+        // ====================================================
+
+        if (
+            Array.isArray(data.profiles)
+        ) {
+
+            profiles =
+                data.profiles;
+
+
+            activeProfileId =
+                data.activeProfileId;
+
+
+            // Make sure there is always at least
+            // one profile
+
+            if (profiles.length === 0) {
+
+                const newProfile = {
+
+                    id: generateId(),
+
+                    name: "My Budget",
+
+                    budget: {
+
+                        income: [],
+
+                        payments: [],
+
+                        oneOffPayments: [],
+
+                        settings: {
+
+                            schedule:
+                                "Fortnightly",
+
+                            anchorDate: ""
+
+                        }
+
+                    }
+
+                };
+
+
+                profiles.push(
+                    newProfile
+                );
+
+                activeProfileId =
+                    newProfile.id;
+
+            }
+
+
+            // Make sure active profile exists
+
+            let activeProfile =
+                profiles.find(
+                    profile =>
+                        profile.id ===
+                        activeProfileId
+                );
+
+
+            if (!activeProfile) {
+
+                activeProfile =
+                    profiles[0];
+
+                activeProfileId =
+                    activeProfile.id;
+
+            }
+
+
+            budget =
+                activeProfile.budget;
+
+
+            // Safety checks
+
+            if (!Array.isArray(budget.income)) {
+
+                budget.income = [];
+
+            }
+
+
+            if (!Array.isArray(budget.payments)) {
+
+                budget.payments = [];
+
+            }
+
+
+            if (
+                !Array.isArray(
+                    budget.oneOffPayments
+                )
+            ) {
+
+                budget.oneOffPayments = [];
+
+            }
+
+
+            if (!budget.settings) {
+
+                budget.settings = {};
+
+            }
+
+			if (
+				typeof budget.settings.useBudgetPeriod !== "boolean"
+			) {
+
+				budget.settings.useBudgetPeriod =
+					!!budget.settings.anchorDate;
+
+			}
+
+            if (!budget.settings.schedule) {
+
+                budget.settings.schedule =
+                    "Fortnightly";
+
+            }
+
+
+            if (!budget.settings.anchorDate) {
+
+                budget.settings.anchorDate =
+                    "";
+
+            }
+
+
+            return;
+
+        }
+
+
+        // ====================================================
+        // OLD FORMAT
+        // ====================================================
+        //
+        // This is the important migration section.
+        //
+        // Your current budget is stored directly as:
+        //
+        // {
+        //     income: [],
+        //     payments: [],
+        //     oneOffPayments: [],
+        //     settings: {}
+        // }
+        //
+        // We automatically turn that into
+        // the first profile.
+        // ====================================================
+
+        const migratedBudget = {
 
             income:
                 Array.isArray(data.income)
@@ -296,17 +880,64 @@ function loadData() {
                     ? data.payments
                     : [],
 
+            oneOffPayments:
+                Array.isArray(
+                    data.oneOffPayments
+                )
+                    ? data.oneOffPayments
+                    : [],
+
             settings: {
 
                 schedule:
                     data.settings &&
                     data.settings.schedule
                         ? data.settings.schedule
-                        : "Fortnightly"
+                        : "Fortnightly",
+
+                anchorDate:
+                    data.settings &&
+                    data.settings.anchorDate
+                        ? data.settings.anchorDate
+                        : ""
 
             }
 
         };
+
+
+        const newProfile = {
+
+            id: generateId(),
+
+            name: "My Budget",
+
+            budget:
+                migratedBudget
+
+        };
+
+
+        profiles = [
+            newProfile
+        ];
+
+
+        activeProfileId =
+            newProfile.id;
+
+
+        budget =
+            newProfile.budget;
+
+
+        saveData();
+
+
+        console.log(
+            "Existing budget migrated to profile system."
+        );
+
 
     } catch (error) {
 
@@ -315,19 +946,47 @@ function loadData() {
             error
         );
 
-        budget = {
 
-            income: [],
+        const newProfile = {
 
-            payments: [],
+            id: generateId(),
 
-            settings: {
+            name: "My Budget",
 
-                schedule: "Fortnightly"
+            budget: {
+
+                income: [],
+
+                payments: [],
+
+                oneOffPayments: [],
+
+                settings: {
+
+                    schedule:
+                        "Fortnightly",
+
+                    anchorDate:
+                        ""
+
+                }
 
             }
 
         };
+
+
+        profiles = [
+            newProfile
+        ];
+
+
+        activeProfileId =
+            newProfile.id;
+
+
+        budget =
+            newProfile.budget;
 
     }
 
@@ -335,18 +994,533 @@ function loadData() {
 
 function updateScheduleSelector() {
 
-    if (!budgetSchedule) {
+    const useBudgetPeriod =
+        budget.settings &&
+        budget.settings.useBudgetPeriod;
+
+
+    // ========================================================
+    // BUDGET SCHEDULE
+    // Always available
+    // ========================================================
+
+    if (budgetScheduleContainer) {
+
+        budgetScheduleContainer.style.display = "";
+
+    }
+
+    if (budgetSchedule) {
+
+        budgetSchedule.value =
+            budget.settings.schedule ||
+            "Fortnightly";
+
+    }
+
+
+    // ========================================================
+    // NEXT PAY DAY
+    // Only available when payday is enabled
+    // ========================================================
+
+    if (useBudgetPeriod) {
+
+        if (budgetAnchorDateContainer) {
+
+            budgetAnchorDateContainer.style.display = "";
+
+        }
+
+        if (budgetAnchorDate) {
+
+            budgetAnchorDate.value =
+                budget.settings.anchorDate || "";
+
+        }
+
+    } else {
+
+        if (budgetAnchorDateContainer) {
+
+            budgetAnchorDateContainer.style.display = "none";
+
+        }
+
+    }
+
+}
+
+// ============================================================
+// PROFILES
+// ============================================================
+
+function renderProfiles() {
+
+    if (!profileSelector) {
+        return;
+    }
+
+    profileSelector.innerHTML = "";
+
+    profiles.forEach(profile => {
+
+        const option =
+            document.createElement("option");
+
+        option.value =
+            profile.id;
+
+        option.textContent =
+            profile.name;
+
+        if (profile.id === activeProfileId) {
+
+            option.selected = true;
+
+        }
+
+        profileSelector.appendChild(option);
+
+    });
+
+}
+
+// ============================================================
+// PROFILE MANAGEMENT
+// ============================================================
+
+function openProfileManager() {
+
+    renderProfileManager();
+
+    profileModal.classList.remove("hidden");
+
+}
+
+
+function closeProfileManager() {
+
+    profileModal.classList.add("hidden");
+
+}
+
+
+// ============================================================
+// RENDER PROFILE MANAGEMENT LIST
+// ============================================================
+
+function renderProfileManager() {
+
+    if (!profileList) {
 
         return;
 
     }
 
-    budgetSchedule.value =
-        budget.settings.schedule || "Fortnightly";
+    profileList.innerHTML = "";
+
+    profiles.forEach(profile => {
+
+        const row =
+            document.createElement("div");
+
+        row.className =
+            "profile-management-row";
+
+        const isActive =
+            profile.id === activeProfileId;
+
+        row.innerHTML = `
+
+            <div class="profile-management-name">
+
+                <i class="fa-solid fa-user"></i>
+
+                <span>
+                    ${escapeHtml(profile.name)}
+                </span>
+
+                ${
+                    isActive
+                        ? `<small>Active</small>`
+                        : ""
+                }
+
+            </div>
+
+            <div class="profile-management-actions">
+
+                <button
+                    type="button"
+                    class="action-btn edit-btn"
+                    onclick="renameProfile('${profile.id}')"
+                    title="Rename">
+
+                    <i class="fa-solid fa-pen"></i>
+
+                </button>
+
+                <button
+                    type="button"
+                    class="action-btn delete-btn"
+                    onclick="deleteProfile('${profile.id}')"
+                    title="Delete">
+
+                    <i class="fa-solid fa-trash"></i>
+
+                </button>
+
+            </div>
+
+        `;
+
+        profileList.appendChild(row);
+
+    });
 
 }
 
 
+// ============================================================
+// OPEN CREATE PROFILE FORM
+// ============================================================
+
+function openCreateProfileForm() {
+
+    profileManagerView.style.display = "none";
+
+    profileCreateView.style.display = "block";
+
+    profileForm.reset();
+
+    profilePaydayYes.classList.add("active");
+
+    profilePaydayNo.classList.remove("active");
+
+    profilePaydaySettings.style.display = "";
+
+    profileSchedule.value = "Fortnightly";
+
+    profileAnchorDate.value =
+        getTodayString();
+
+}
+
+// ============================================================
+// CREATE PROFILE
+// ============================================================
+
+
+// ============================================================
+// SAVE PROFILE
+// ============================================================
+
+function saveProfile(event) {
+
+    event.preventDefault();
+
+    const name =
+        profileName.value.trim();
+
+    const useBudgetPeriod =
+		profilePaydayYes.classList.contains("active");
+
+    let schedule = null;
+    let anchorDate = null;
+
+
+    // ========================================================
+    // VALIDATION
+    // ========================================================
+
+    if (!name) {
+
+        alert("Please enter a profile name.");
+
+        profileName.focus();
+
+        return;
+
+    }
+
+
+    // ========================================================
+    // PAYDAY SETTINGS
+    // ========================================================
+
+    if (useBudgetPeriod) {
+
+        schedule =
+            profileSchedule.value;
+
+        anchorDate =
+            profileAnchorDate.value;
+
+
+        if (!schedule) {
+
+            alert("Please select a budget schedule.");
+
+            return;
+
+        }
+
+
+        if (!anchorDate) {
+
+            alert("Please select your next payday.");
+
+            return;
+
+        }
+
+    }
+
+
+    // ========================================================
+    // CREATE PROFILE
+    // ========================================================
+
+    const newProfile = {
+
+        id:
+            generateId(),
+
+        name:
+            name,
+
+        budget: {
+
+            income: [],
+
+            payments: [],
+
+            oneOffPayments: [],
+
+            settings: {
+
+                useBudgetPeriod:
+                    useBudgetPeriod,
+
+                schedule:
+                    schedule,
+
+                anchorDate:
+                    anchorDate
+
+            }
+
+        }
+
+    };
+
+
+    profiles.push(newProfile);
+
+    activeProfileId =
+        newProfile.id;
+
+    budget =
+        newProfile.budget;
+
+
+    // ========================================================
+    // SAVE
+    // ========================================================
+
+    saveData();
+
+
+    // ========================================================
+    // REFRESH APP
+    // ========================================================
+
+    updateScheduleSelector();
+
+    updateRecurringDates();
+
+    renderProfiles();
+
+    renderProfileManager();
+
+    renderAll();
+
+
+   // ========================================================
+// CLOSE PROFILE MODAL
+// ========================================================
+
+profileCreateView.classList.add("hidden");
+
+profileManagerView.classList.remove("hidden");
+
+profileModal.classList.add("hidden");
+
+
+    console.log(
+        "Created profile:",
+        name,
+        newProfile
+    );
+
+}
+
+
+// ============================================================
+// RENAME PROFILE
+// ============================================================
+
+function renameProfile(profileId) {
+
+    const profile =
+        profiles.find(
+            profile =>
+                profile.id === profileId
+        );
+
+    if (!profile) {
+
+        return;
+
+    }
+
+
+    const newName =
+        prompt(
+            "Enter a new profile name:",
+            profile.name
+        );
+
+    if (newName === null) {
+
+        return;
+
+    }
+
+
+    const trimmedName =
+        newName.trim();
+
+    if (!trimmedName) {
+
+        alert("Please enter a profile name.");
+
+        return;
+
+    }
+
+
+    profile.name =
+        trimmedName;
+
+
+    saveData();
+
+    renderProfiles();
+
+    renderProfileManager();
+
+
+    console.log(
+        "Renamed profile:",
+        trimmedName
+    );
+
+}
+
+
+// ============================================================
+// DELETE PROFILE
+// ============================================================
+
+function deleteProfile(profileId) {
+
+    const profile =
+        profiles.find(
+            profile =>
+                profile.id === profileId
+        );
+
+    if (!profile) {
+
+        return;
+
+    }
+
+
+    // Don't allow the last profile to be deleted
+
+    if (profiles.length === 1) {
+
+        alert(
+            "You must keep at least one profile."
+        );
+
+        return;
+
+    }
+
+
+    const confirmed =
+        confirm(
+            `Delete the profile "${profile.name}"? This will permanently delete all of its budget data.`
+        );
+
+    if (!confirmed) {
+
+        return;
+
+    }
+
+
+    const wasActive =
+        profile.id === activeProfileId;
+
+
+    profiles =
+        profiles.filter(
+            profile =>
+                profile.id !== profileId
+        );
+
+
+    // If deleting the active profile,
+    // switch to the first remaining profile
+
+    if (wasActive) {
+
+        const newActiveProfile =
+            profiles[0];
+
+        activeProfileId =
+            newActiveProfile.id;
+
+        budget =
+            newActiveProfile.budget;
+
+        updateScheduleSelector();
+
+        updateRecurringDates();
+
+    }
+
+
+    saveData();
+
+    renderProfiles();
+
+    renderProfileManager();
+
+    renderAll();
+
+
+    console.log(
+        "Deleted profile:",
+        profile.name
+    );
+
+}
 
 // ============================================================
 // NAVIGATION
@@ -410,38 +1584,106 @@ function openModal(type, id = null) {
 
     itemForm.reset();
 
+// Show delete button only when editing
+if (deleteItemBtn) {
+
     if (id) {
 
-        const collection =
-            type === "income"
-                ? budget.income
-                : budget.payments;
+        deleteItemBtn.classList.remove("hidden");
+
+    } else {
+
+        deleteItemBtn.classList.add("hidden");
+
+    }
+
+}
+
+    // Show/hide frequency depending on item type
+    if (type === "oneoff") {
+
+    frequencyGroup.style.display = "none";
+
+    itemDateLabel.textContent = "Date";
+
+    modalTitle.textContent = id
+        ? "Edit One-Off Payment"
+        : "Add One-Off Payment";
+
+} else {
+
+    frequencyGroup.style.display = "flex";
+
+    itemDateLabel.textContent = "Next Date";
+
+    modalTitle.textContent =
+        type === "income"
+            ? "Add Income"
+            : "Add Payment";
+
+}
+
+
+    // Editing existing item
+    if (id) {
+
+        let collection;
+
+        if (type === "income") {
+
+            collection = budget.income;
+
+        } else if (type === "payment") {
+
+            collection = budget.payments;
+
+        } else if (type === "oneoff") {
+
+            collection = budget.oneOffPayments;
+
+        }
+
 
         const item =
             collection.find(
                 entry => entry.id === id
             );
 
+
         if (!item) {
+
+            console.error(
+                "Could not find item:",
+                type,
+                id
+            );
 
             return;
 
         }
 
-        modalTitle.textContent = "Edit Item";
 
-        itemName.value = item.name;
-        itemAmount.value = item.amount;
-        itemFrequency.value = item.frequency;
-        itemDate.value = item.nextDate;
+        itemName.value =
+            item.name;
+
+        itemAmount.value =
+            item.amount;
+
+        itemDate.value =
+            item.nextDate;
+
+
+        // Frequency only exists on recurring items
+        if (type !== "oneoff") {
+
+            itemFrequency.value =
+                item.frequency;
+
+        }
 
     } else {
 
-        modalTitle.textContent =
-            type === "income"
-                ? "Add Income"
-                : "Add Payment";
-
+        // New item
         itemDate.value =
             getTodayString();
 
@@ -468,94 +1710,242 @@ function closeModal() {
 // ============================================================
 
 function saveItem(event) {
+
     event.preventDefault();
 
     console.log("SAVE BUTTON PRESSED");
 
-    const name = itemName.value.trim();
-    const amount = Number(itemAmount.value);
-    const frequency = itemFrequency.value;
-    const date = itemDate.value;
+    const name =
+        itemName.value.trim();
+
+    const amount =
+        Number(itemAmount.value);
+
+    const frequency =
+        itemFrequency.value;
+
+    const date =
+        itemDate.value;
+
 
     console.log("Form values:", {
+
         name,
         amount,
         frequency,
         date,
         editingType,
         editingId
+
     });
 
-    // Validate fields
+
+    // ========================================================
+    // VALIDATION
+    // ========================================================
+
     if (!name) {
+
         alert("Please enter a name.");
+
         return;
+
     }
+
 
     if (isNaN(amount) || amount < 0) {
+
         alert("Please enter a valid amount.");
+
         return;
+
     }
 
-    if (!frequency) {
-        alert("Please select a frequency.");
-        return;
-    }
 
     if (!date) {
+
         alert("Please select a date.");
+
         return;
+
     }
 
-    // Make sure the correct collection exists
+
+    // Frequency is only required for recurring items
+
+    if (
+        editingType !== "oneoff" &&
+        !frequency
+    ) {
+
+        alert("Please select a frequency.");
+
+        return;
+
+    }
+
+
+    // ========================================================
+    // ONE-OFF PAYMENT
+    // ========================================================
+
+    if (editingType === "oneoff") {
+
+        if (!Array.isArray(budget.oneOffPayments)) {
+
+            budget.oneOffPayments = [];
+
+        }
+
+
+        const item = {
+
+            id:
+                editingId ||
+                generateId(),
+
+            name:
+                name,
+
+            amount:
+                amount,
+
+            nextDate:
+                date
+
+        };
+
+
+        if (editingId) {
+
+            const index =
+                budget.oneOffPayments.findIndex(
+                    entry =>
+                        entry.id === editingId
+                );
+
+
+            if (index === -1) {
+
+                alert(
+                    "Could not find the one-off payment you're editing."
+                );
+
+                return;
+
+            }
+
+
+            budget.oneOffPayments[index] =
+                item;
+
+        } else {
+
+            budget.oneOffPayments.push(item);
+
+        }
+
+
+        saveData();
+
+        renderAll();
+
+        closeModal();
+
+        console.log(
+            "One-off payment saved successfully."
+        );
+
+        return;
+
+    }
+
+
+    // ========================================================
+    // RECURRING ITEMS
+    // ========================================================
+
     if (editingType === "income") {
 
         if (!Array.isArray(budget.income)) {
+
             budget.income = [];
+
         }
 
     } else if (editingType === "payment") {
 
         if (!Array.isArray(budget.payments)) {
+
             budget.payments = [];
+
         }
 
     } else {
 
-        console.error("Invalid editingType:", editingType);
-        alert("Something went wrong. Please close the window and try again.");
+        console.error(
+            "Invalid editingType:",
+            editingType
+        );
+
+        alert(
+            "Something went wrong. Please close the window and try again."
+        );
+
         return;
 
     }
 
+
     const item = {
-        id: editingId || generateId(),
-        name: name,
-        amount: amount,
-        frequency: frequency,
-        nextDate: date
+
+        id:
+            editingId ||
+            generateId(),
+
+        name:
+            name,
+
+        amount:
+            amount,
+
+        frequency:
+            frequency,
+
+        nextDate:
+            date
+
     };
+
 
     const collection =
         editingType === "income"
             ? budget.income
             : budget.payments;
 
+
     if (editingId) {
 
-        const index = collection.findIndex(
-            entry => entry.id === editingId
-        );
+        const index =
+            collection.findIndex(
+                entry =>
+                    entry.id === editingId
+            );
+
 
         if (index === -1) {
 
-            console.error("Could not find item being edited.");
-            alert("Could not find the item you're editing.");
+            alert(
+                "Could not find the item you're editing."
+            );
+
             return;
 
         }
 
-        collection[index] = item;
+
+        collection[index] =
+            item;
 
     } else {
 
@@ -563,23 +1953,17 @@ function saveItem(event) {
 
     }
 
-    // Save to localStorage
+
     saveData();
 
-    console.log("Saved budget:", budget);
-    console.log(
-        "LocalStorage:",
-        localStorage.getItem(STORAGE_KEY)
-    );
-
-    // Update screen
     renderAll();
 
-    // Close modal
     closeModal();
 
-    // Confirmation
-    console.log("Item saved successfully.");
+    console.log(
+        "Item saved successfully."
+    );
+
 }
 
 
@@ -589,31 +1973,80 @@ function saveItem(event) {
 
 function deleteItem(type, id) {
 
-    const message =
-        type === "income"
-            ? "Delete this income?"
-            : "Delete this payment?";
+    let message;
 
+    if (type === "income") {
 
-    if (!confirm(message)) {
+        message = "Delete this income?";
 
-        return;
+    } else if (type === "payment") {
+
+        message = "Delete this payment?";
+
+    } else if (type === "oneoff") {
+
+        message = "Delete this one-off payment?";
 
     }
+
+
+    // Delete item from modal
+if (deleteItemBtn) {
+
+    deleteItemBtn.addEventListener(
+        "click",
+        () => {
+
+            if (
+                !editingType ||
+                !editingId
+            ) {
+
+                return;
+
+            }
+
+            const type =
+                editingType;
+
+            const id =
+                editingId;
+
+            closeModal();
+
+            deleteItem(
+                type,
+                id
+            );
+
+        }
+    );
+
+}
 
 
     if (type === "income") {
 
         budget.income =
             budget.income.filter(
-                item => item.id !== id
+                item =>
+                    item.id !== id
             );
 
-    } else {
+    } else if (type === "payment") {
 
         budget.payments =
             budget.payments.filter(
-                item => item.id !== id
+                item =>
+                    item.id !== id
+            );
+
+    } else if (type === "oneoff") {
+
+        budget.oneOffPayments =
+            budget.oneOffPayments.filter(
+                item =>
+                    item.id !== id
             );
 
     }
@@ -809,11 +2242,15 @@ function renderAll() {
 
     renderPayments();
 
+    renderOneOffPayments();
+
     renderDashboard();
 
     renderUpcomingPayments();
 
     renderCalendar();
+
+    updateBudgetPeriodDisplay();
 
 }
 
@@ -1016,6 +2453,95 @@ function renderPayments() {
 
 }
 
+// ============================================================
+// ONE-OFF PAYMENTS TABLE
+// ============================================================
+
+function renderOneOffPayments() {
+
+    if (!oneOffTable) {
+
+        return;
+
+    }
+
+
+    oneOffTable.innerHTML = "";
+
+
+    if (
+        !Array.isArray(budget.oneOffPayments) ||
+        budget.oneOffPayments.length === 0
+    ) {
+
+        oneOffTable.innerHTML = `
+            <tr>
+                <td colspan="4">
+                    No one-off payments added yet.
+                </td>
+            </tr>
+        `;
+
+        return;
+
+    }
+
+
+    const sorted =
+        [...budget.oneOffPayments].sort(
+            (a, b) =>
+                new Date(a.nextDate) -
+                new Date(b.nextDate)
+        );
+
+
+    sorted.forEach(item => {
+
+        oneOffTable.innerHTML += `
+
+            <tr>
+
+                <td>
+                    ${escapeHtml(item.name)}
+                </td>
+
+                <td>
+                    ${formatCurrency(item.amount)}
+                </td>
+
+                <td>
+                    ${formatDate(item.nextDate)}
+                </td>
+
+                <td>
+
+                    <button
+                        class="action-btn edit-btn"
+                        onclick="editItem('oneoff', '${item.id}')"
+                        title="Edit">
+
+                        <i class="fa-solid fa-pen"></i>
+
+                    </button>
+
+                    <button
+                        class="action-btn delete-btn"
+                        onclick="deleteItem('oneoff', '${item.id}')"
+                        title="Delete">
+
+                        <i class="fa-solid fa-trash"></i>
+
+                    </button>
+
+                </td>
+
+            </tr>
+
+        `;
+
+    });
+
+}
 
 // ============================================================
 // EDIT
@@ -1074,8 +2600,13 @@ const payments =
     );
 
 
-    const remaining =
-        income - payments;
+    const oneOffPayments =
+    getCurrentPeriodOneOffTotal();
+
+const remaining =
+    income -
+    payments -
+    oneOffPayments;
 
 
     monthlyIncome.textContent =
@@ -1127,6 +2658,70 @@ const payments =
         </small>
 
     `;
+
+}
+
+// ============================================================
+// UPDATE CURRENT BUDGET PERIOD DISPLAY
+// ============================================================
+
+function updateBudgetPeriodDisplay() {
+
+    if (!currentBudgetPeriod) {
+
+        return;
+
+    }
+
+
+    // Profile does not use a payday/budget period
+    if (
+        !budget.settings ||
+        !budget.settings.useBudgetPeriod
+    ) {
+
+        currentBudgetPeriod.textContent = "";
+
+        const budgetPeriodElement =
+            currentBudgetPeriod.closest(".budget-period");
+
+        if (budgetPeriodElement) {
+
+            budgetPeriodElement.style.display = "none";
+
+        }
+
+        return;
+
+    }
+
+
+    const budgetPeriodElement =
+        currentBudgetPeriod.closest(".budget-period");
+
+    if (budgetPeriodElement) {
+
+        budgetPeriodElement.style.display = "";
+
+    }
+
+
+    const period =
+        getCurrentBudgetPeriod();
+
+
+    if (!period) {
+
+        currentBudgetPeriod.textContent =
+            "Set your next pay day";
+
+        return;
+
+    }
+
+
+    currentBudgetPeriod.textContent =
+        `${formatDate(period.start)} → ${formatDate(period.end)}`;
 
 }
 
@@ -1508,6 +3103,379 @@ function renderUpcomingPayments() {
 
 }
 
+// ============================================================
+// CURRENT BUDGET PERIOD
+// ============================================================
+
+function getCurrentBudgetPeriod() {
+
+    if (
+        !budget.settings ||
+        !budget.settings.useBudgetPeriod
+    ) {
+
+        return null;
+
+    }
+
+
+    const schedule =
+        budget.settings.schedule || "Fortnightly";
+
+    const anchorDateString =
+        budget.settings.anchorDate;
+
+
+    // No anchor date set yet
+    if (!anchorDateString) {
+
+        return null;
+
+    }
+
+
+    const today =
+        new Date();
+
+    today.setHours(0, 0, 0, 0);
+
+
+    let periodEnd =
+        new Date(
+            anchorDateString + "T00:00:00"
+        );
+
+
+    periodEnd.setHours(0, 0, 0, 0);
+
+
+    // ========================================================
+    // MOVE THE ANCHOR FORWARD UNTIL IT IS
+    // THE NEXT PAY DAY
+    // ========================================================
+
+    while (periodEnd < today) {
+
+        switch (schedule) {
+
+            case "Weekly":
+
+                periodEnd.setDate(
+                    periodEnd.getDate() + 7
+                );
+
+                break;
+
+
+            case "Fortnightly":
+
+                periodEnd.setDate(
+                    periodEnd.getDate() + 14
+                );
+
+                break;
+
+
+            case "Monthly":
+
+                periodEnd.setMonth(
+                    periodEnd.getMonth() + 1
+                );
+
+                break;
+
+        }
+
+    }
+
+
+    // ========================================================
+    // CALCULATE PERIOD START
+    // ========================================================
+
+    const periodStart =
+        new Date(periodEnd);
+
+
+    switch (schedule) {
+
+        case "Weekly":
+
+            periodStart.setDate(
+                periodStart.getDate() - 6
+            );
+
+            break;
+
+
+        case "Fortnightly":
+
+            periodStart.setDate(
+                periodStart.getDate() - 13
+            );
+
+            break;
+
+
+        case "Monthly":
+
+            periodStart.setMonth(
+                periodStart.getMonth() - 1
+            );
+
+            periodStart.setDate(
+                periodStart.getDate() + 1
+            );
+
+            break;
+
+    }
+
+
+    return {
+
+        start:
+            formatDateForInput(periodStart),
+
+        end:
+            formatDateForInput(periodEnd)
+
+    };
+
+}
+
+// ============================================================
+// ONE-OFF PAYMENTS IN CURRENT BUDGET PERIOD
+// ============================================================
+
+function getCurrentPeriodOneOffTotal() {
+
+    if (
+        !Array.isArray(budget.oneOffPayments) ||
+        budget.oneOffPayments.length === 0
+    ) {
+
+        return 0;
+
+    }
+
+
+    const period =
+        getCurrentBudgetPeriod();
+
+
+    // No anchor date has been configured yet
+    if (!period) {
+
+        return 0;
+
+    }
+
+
+    let total = 0;
+
+
+    budget.oneOffPayments.forEach(item => {
+
+        if (
+            item.nextDate >= period.start &&
+            item.nextDate <= period.end
+        ) {
+
+            total +=
+                Number(item.amount) || 0;
+
+        }
+
+    });
+
+
+    return total;
+
+}
+
+// ============================================================
+// CALENDAR DOUBLE-CLICK MENU
+// ============================================================
+
+// ============================================================
+// CALENDAR ADD MENU
+// ============================================================
+
+let calendarAddDateString = null;
+
+
+function openCalendarAddMenu(
+    dateString,
+    clickX,
+    clickY
+) {
+
+    calendarAddDateString =
+        dateString;
+
+
+    calendarAddDate.textContent =
+        formatDate(dateString);
+
+
+    calendarAddMenu.classList.remove(
+        "hidden"
+    );
+
+
+    // ========================================================
+    // POSITION MENU
+    // ========================================================
+
+    const menuWidth =
+        calendarAddMenu.offsetWidth;
+
+    const menuHeight =
+        calendarAddMenu.offsetHeight;
+
+    const padding = 10;
+
+
+    let left =
+        clickX;
+
+    let top =
+        clickY;
+
+
+    // Prevent going off the right side
+    if (
+        left + menuWidth >
+        window.innerWidth - padding
+    ) {
+
+        left =
+            window.innerWidth -
+            menuWidth -
+            padding;
+
+    }
+
+
+    // Prevent going off the bottom
+    if (
+        top + menuHeight >
+        window.innerHeight - padding
+    ) {
+
+        top =
+            window.innerHeight -
+            menuHeight -
+            padding;
+
+    }
+
+
+    calendarAddMenu.style.left =
+        `${left}px`;
+
+    calendarAddMenu.style.top =
+        `${top}px`;
+
+}
+
+
+// ============================================================
+// CLOSE CALENDAR ADD MENU
+// ============================================================
+
+function closeCalendarAddMenu() {
+
+    calendarAddMenu.classList.add(
+        "hidden"
+    );
+
+    calendarAddDateString = null;
+
+}
+
+
+// ============================================================
+// CALENDAR ADD MENU EVENTS
+// ============================================================
+
+calendarAddIncome.addEventListener(
+    "click",
+    () => {
+
+        const date =
+            calendarAddDateString;
+
+        closeCalendarAddMenu();
+
+        openModal("income");
+
+        itemDate.value =
+            date;
+
+    }
+);
+
+
+calendarAddPayment.addEventListener(
+    "click",
+    () => {
+
+        const date =
+            calendarAddDateString;
+
+        closeCalendarAddMenu();
+
+        openModal("payment");
+
+        itemDate.value =
+            date;
+
+    }
+);
+
+
+calendarAddOneOff.addEventListener(
+    "click",
+    () => {
+
+        const date =
+            calendarAddDateString;
+
+        closeCalendarAddMenu();
+
+        openModal("oneoff");
+
+        itemDate.value =
+            date;
+
+    }
+);
+
+
+calendarAddCancel.addEventListener(
+    "click",
+    closeCalendarAddMenu
+);
+
+
+// Close menu if clicking elsewhere
+document.addEventListener(
+    "click",
+    event => {
+
+        if (
+            !calendarAddMenu.contains(event.target) &&
+            !event.target.closest(".calendar-day")
+        ) {
+
+            closeCalendarAddMenu();
+
+        }
+
+    }
+);
 
 // ============================================================
 // CALENDAR
@@ -1539,7 +3507,10 @@ function renderCalendar() {
     calendarGrid.innerHTML = "";
 
 
-    // Day headings
+    // ========================================================
+    // DAY HEADINGS
+    // ========================================================
+
     const dayNames = [
         "Sun",
         "Mon",
@@ -1553,14 +3524,26 @@ function renderCalendar() {
 
     dayNames.forEach(day => {
 
-        calendarGrid.innerHTML += `
-            <div class="calendar-day-name">
+        const heading =
+            document.createElement("div");
+
+        heading.className =
+            "calendar-day calendar-heading";
+
+        heading.innerHTML = `
+            <div class="calendar-number">
                 ${day}
             </div>
         `;
 
+        calendarGrid.appendChild(heading);
+
     });
 
+
+    // ========================================================
+    // CALENDAR INFORMATION
+    // ========================================================
 
     const firstDay =
         new Date(
@@ -1578,7 +3561,10 @@ function renderCalendar() {
         ).getDate();
 
 
-    // Empty cells before month starts
+    // ========================================================
+    // EMPTY CELLS BEFORE MONTH STARTS
+    // ========================================================
+
     for (
         let i = 0;
         i < firstDay;
@@ -1592,7 +3578,10 @@ function renderCalendar() {
     }
 
 
-    // Actual days
+    // ========================================================
+    // ACTUAL DAYS
+    // ========================================================
+
     for (
         let day = 1;
         day <= daysInMonth;
@@ -1632,38 +3621,105 @@ function renderCalendar() {
 
         events.forEach(event => {
 
-            eventHtml += `
+    eventHtml += `
 
-                <div class="calendar-event ${event.type}">
+        <div
+            class="calendar-event ${event.type}"
+            data-edit-type="${event.editType}"
+            data-edit-id="${event.id}"
+            title="Click to edit"
+        >
 
-                    ${escapeHtml(event.name)}
+            ${escapeHtml(event.name)}
 
-                    <br>
+            <br>
 
-                    <small>
-                        ${formatCurrency(event.amount)}
-                    </small>
+            <small>
+                ${formatCurrency(event.amount)}
+            </small>
 
-                </div>
+        </div>
 
-            `;
+    `;
 
-        });
+});
 
 
-        calendarGrid.innerHTML += `
 
-            <div class="calendar-day ${todayClass}">
 
-                <div class="calendar-number">
-                    ${day}
-                </div>
+        // ====================================================
+        // CREATE CALENDAR DAY
+        // ====================================================
 
-                ${eventHtml}
+        const calendarDay =
+            document.createElement("div");
 
+
+        calendarDay.className =
+            `calendar-day ${todayClass}`;
+
+
+        calendarDay.innerHTML = `
+
+            <div class="calendar-number">
+                ${day}
             </div>
 
+            ${eventHtml}
+
         `;
+
+// ========================================================
+// CLICK CALENDAR EVENT TO EDIT
+// ========================================================
+
+calendarDay
+    .querySelectorAll(".calendar-event")
+    .forEach(eventElement => {
+
+        eventElement.addEventListener(
+            "click",
+            event => {
+
+                event.stopPropagation();
+
+                const editType =
+                    eventElement.dataset.editType;
+
+                const editId =
+                    eventElement.dataset.editId;
+
+                editItem(
+                    editType,
+                    editId
+                );
+
+            }
+        );
+
+    });
+
+        // ====================================================
+        // DOUBLE-CLICK CALENDAR DATE
+        // ====================================================
+
+		calendarDay.addEventListener(
+    "dblclick",
+    event => {
+
+        openCalendarAddMenu(
+            dateString,
+            event.clientX,
+            event.clientY
+        );
+
+    }
+);
+
+
+        calendarGrid.appendChild(
+            calendarDay
+        );
 
     }
 
@@ -1674,12 +3730,18 @@ function renderCalendar() {
 // CALENDAR EVENTS
 // ============================================================
 
+// ============================================================
+// CALENDAR EVENTS
+// ============================================================
+
 function getCalendarEvents(dateString) {
 
     const events = [];
 
     const targetDate =
-        new Date(dateString + "T00:00:00");
+        new Date(
+            dateString + "T00:00:00"
+        );
 
 
     // ----------------------------------------
@@ -1694,6 +3756,10 @@ function getCalendarEvents(dateString) {
 
                 type: "income-event",
 
+                editType: "income",
+
+                id: item.id,
+
                 name: item.name,
 
                 amount: item.amount
@@ -1706,7 +3772,7 @@ function getCalendarEvents(dateString) {
 
 
     // ----------------------------------------
-    // PAYMENTS
+    // RECURRING PAYMENTS
     // ----------------------------------------
 
     budget.payments.forEach(item => {
@@ -1716,6 +3782,37 @@ function getCalendarEvents(dateString) {
             events.push({
 
                 type: "payment-event",
+
+                editType: "payment",
+
+                id: item.id,
+
+                name: item.name,
+
+                amount: item.amount
+
+            });
+
+        }
+
+    });
+
+
+    // ----------------------------------------
+    // ONE-OFF PAYMENTS
+    // ----------------------------------------
+
+    budget.oneOffPayments.forEach(item => {
+
+        if (item.nextDate === dateString) {
+
+            events.push({
+
+                type: "oneoff-event",
+
+                editType: "oneoff",
+
+                id: item.id,
 
                 name: item.name,
 
@@ -1729,8 +3826,10 @@ function getCalendarEvents(dateString) {
 
 
     return events;
+
 }
 
+	
 
 // ============================================================
 // CHECK RECURRING EVENT DATE
@@ -1995,3 +4094,229 @@ window.budget = budget;
 console.log(
     "Budget Dashboard loaded."
 );
+
+console.log(
+    "Current budget period:",
+    getCurrentBudgetPeriod()
+);
+
+// ============================================================
+// SMART TOOLTIPS
+// ============================================================
+
+function setupSmartTooltips() {
+
+    const tooltips =
+        document.querySelectorAll(".tooltip");
+
+
+    tooltips.forEach(tooltip => {
+
+        tooltip.addEventListener(
+            "mouseenter",
+            () => {
+
+                positionTooltip(tooltip);
+
+            }
+        );
+
+    });
+
+}
+
+
+function positionTooltip(tooltip) {
+
+    // Reset previous positioning
+    tooltip.classList.remove(
+        "tooltip-bottom",
+        "tooltip-left",
+        "tooltip-right"
+    );
+
+
+    const tooltipText =
+        tooltip.querySelector(".tooltip-text");
+
+
+    if (!tooltipText) {
+
+        return;
+
+    }
+
+
+    const rect =
+        tooltip.getBoundingClientRect();
+
+
+    const tooltipWidth =
+        tooltipText.offsetWidth;
+
+
+    const tooltipHeight =
+        tooltipText.offsetHeight;
+
+
+    const spacing = 8;
+
+
+    // ========================================================
+    // CHECK VERTICAL SPACE
+    // ========================================================
+
+    const spaceAbove =
+        rect.top;
+
+
+    const spaceBelow =
+        window.innerHeight - rect.bottom;
+
+
+    // If there isn't enough room above,
+    // show the tooltip below.
+
+    if (
+        spaceAbove <
+        tooltipHeight + spacing
+        &&
+        spaceBelow >
+        spaceAbove
+    ) {
+
+        tooltip.classList.add(
+            "tooltip-bottom"
+        );
+
+    }
+
+
+    // ========================================================
+    // CHECK HORIZONTAL SPACE
+    // ========================================================
+
+    const tooltipLeft =
+        rect.left +
+        (rect.width / 2) -
+        (tooltipWidth / 2);
+
+
+    const tooltipRight =
+        tooltipLeft +
+        tooltipWidth;
+
+
+    // Too far left
+    if (tooltipLeft < 8) {
+
+        tooltip.classList.add(
+            "tooltip-right"
+        );
+
+    }
+
+
+    // Too far right
+    else if (
+        tooltipRight >
+        window.innerWidth - 8
+    ) {
+
+        tooltip.classList.add(
+            "tooltip-left"
+        );
+
+    }
+
+}
+
+/* ==========================================================
+   THEME
+========================================================== */
+
+function setupTheme() {
+
+    const themeToggle = document.getElementById("themeToggle");
+
+    if (!themeToggle) return;
+
+    const savedTheme = localStorage.getItem("budgetTheme");
+
+    if (savedTheme === "light") {
+
+        document.body.classList.add("light-mode");
+
+    }
+
+    updateThemeButton();
+
+
+    themeToggle.addEventListener("click", () => {
+
+        document.body.classList.toggle("light-mode");
+
+        const isLight =
+            document.body.classList.contains("light-mode");
+
+        localStorage.setItem(
+            "budgetTheme",
+            isLight ? "light" : "dark"
+        );
+
+        updateThemeButton();
+
+    });
+
+}
+
+
+function updateThemeButton() {
+
+    const themeToggle =
+        document.getElementById("themeToggle");
+
+    if (!themeToggle) return;
+
+    const icon =
+        themeToggle.querySelector("i");
+
+    const isLight =
+        document.body.classList.contains("light-mode");
+
+
+    if (isLight) {
+
+        icon.className =
+            "fa-solid fa-moon";
+
+        themeToggle.title =
+            "Switch to dark mode";
+
+        themeToggle.setAttribute(
+            "aria-label",
+            "Switch to dark mode"
+        );
+
+    } else {
+
+        icon.className =
+            "fa-solid fa-sun";
+
+        themeToggle.title =
+            "Switch to light mode";
+
+        themeToggle.setAttribute(
+            "aria-label",
+            "Switch to light mode"
+        );
+
+    }
+
+}
+
+// ============================================================
+// INITIALISE SMART TOOLTIPS
+// ============================================================
+
+setupSmartTooltips();
